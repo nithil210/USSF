@@ -665,5 +665,253 @@ footer .fcredit{font-size:11px;color:#999;margin-top:20px;}
   </div>
 </footer>
 
+<!-- ===== CHATBOT WIDGET ===== -->
+<div id="njc-bot-launcher" aria-label="Open NJC city assistant">
+  <span id="njc-bot-launcher-icon">⛨</span>
+</div>
+
+<div id="njc-bot-window">
+  <div id="njc-bot-header">
+    <div id="njc-bot-header-text">
+      <div id="njc-bot-title">NJC City Assistant</div>
+      <div id="njc-bot-sub">Ask me about USSF</div>
+    </div>
+    <button id="njc-bot-close" aria-label="Close chat">✕</button>
+  </div>
+  <div id="njc-bot-messages"></div>
+  <div id="njc-bot-quickrow"></div>
+  <form id="njc-bot-form">
+    <input id="njc-bot-input" type="text" placeholder="Ask about NJC, the metro, the bridge…" autocomplete="off">
+    <button type="submit" id="njc-bot-send" aria-label="Send">➤</button>
+  </form>
+</div>
+
+<style>
+  #njc-bot-launcher{
+    position:fixed;bottom:24px;right:24px;z-index:200;
+    width:58px;height:58px;border-radius:50%;
+    background:var(--ink);color:var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(13,15,12,0.35);
+    border:2px solid var(--gold);
+    transition:transform .15s;
+  }
+  #njc-bot-launcher:hover{transform:scale(1.06);}
+  #njc-bot-launcher.hide{display:none;}
+
+  #njc-bot-window{
+    position:fixed;bottom:24px;right:24px;z-index:201;
+    width:340px;max-width:calc(100vw - 32px);
+    height:480px;max-height:calc(100vh - 48px);
+    background:var(--parchment);
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:0 16px 40px rgba(13,15,12,0.28);
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
+    font-family:'Inter',sans-serif;
+  }
+  #njc-bot-window.open{display:flex;}
+
+  #njc-bot-header{
+    background:var(--ink);color:var(--parchment);
+    padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+    flex-shrink:0;
+  }
+  #njc-bot-title{font-family:'Fraunces',serif;font-weight:700;font-size:15px;}
+  #njc-bot-sub{font-size:11px;color:var(--gold);margin-top:1px;}
+  #njc-bot-close{
+    background:none;border:none;color:var(--parchment);font-size:15px;cursor:pointer;
+    opacity:0.7;padding:4px;
+  }
+  #njc-bot-close:hover{opacity:1;}
+
+  #njc-bot-messages{
+    flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;
+    background:#fbf6ea;
+  }
+  .njc-msg{max-width:84%;font-size:13.5px;line-height:1.45;padding:9px 13px;border-radius:12px;}
+  .njc-msg.bot{
+    background:var(--card);color:var(--ink);align-self:flex-start;
+    border:1px solid var(--line);border-bottom-left-radius:3px;
+  }
+  .njc-msg.user{
+    background:var(--jade);color:#fff;align-self:flex-end;
+    border-bottom-right-radius:3px;
+  }
+  .njc-msg.bot a.njc-jump{color:var(--brick);font-weight:700;text-decoration:underline;cursor:pointer;}
+
+  #njc-bot-quickrow{
+    display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px;
+    flex-shrink:0;background:#fbf6ea;
+  }
+  .njc-quick{
+    font-size:11px;background:#fff;border:1px solid var(--line);color:var(--jade);
+    padding:5px 10px;border-radius:14px;cursor:pointer;font-weight:600;
+  }
+  .njc-quick:hover{background:var(--card);}
+
+  #njc-bot-form{
+    display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);
+    background:var(--parchment);flex-shrink:0;
+  }
+  #njc-bot-input{
+    flex:1;border:1px solid var(--line);border-radius:20px;padding:9px 14px;
+    font-size:13px;font-family:'Inter',sans-serif;outline:none;background:#fff;
+  }
+  #njc-bot-input:focus{border-color:var(--gold);}
+  #njc-bot-send{
+    width:36px;height:36px;border-radius:50%;border:none;background:var(--ink);
+    color:var(--gold);cursor:pointer;font-size:14px;flex-shrink:0;
+  }
+
+  @media(max-width:480px){
+    #njc-bot-window{
+      width:calc(100vw - 24px);height:calc(100vh - 100px);right:12px;bottom:12px;
+    }
+    #njc-bot-launcher{right:16px;bottom:16px;}
+  }
+</style>
+
+<script>
+(function(){
+  var KB = [
+    { k:["njc","neoveil","capital","what is njc","name mean","name meaning"],
+      a:"NJC is short for <strong>Neoveil Jade City</strong> — the capital of USSF. Neo (modern) + Veil (the medieval history beneath) + Jade (precious, enduring) + City. It's also named after its founders, Nithil and Jenny.",
+      jump:"about" },
+    { k:["metro","train","subway","line","blue line","red line","orange line","transit","station"],
+      a:"NJC runs 3 metro lines — Blue (Airport to Dimotiko Theatro), Red (Port de Jenny to Antopoli), and Orange (Main Hub to Kato Kiffisia). Long-distance trains to Iceland and Santorini depart from NJC Main Hub's upper level. Want the full map?",
+      jump:"metro" },
+    { k:["bridge","golden jade","veilend"],
+      a:"The <strong>Golden Jade Veilend Bridge</strong> crosses the Jade River and marks the edge of NJC's territory — where the highway splits toward Iceland and Santorini.",
+      jump:"bridge" },
+    { k:["coliseum","colosseum","arena"],
+      a:"The Colosseum sits in Middle NJC's medieval quarter, right alongside the Clock Tower and the old trade marketplace — NJC's most iconic ancient landmark.",
+      jump:"coliseum" },
+    { k:["slut town","nightlife","red light","district"],
+      a:"Slut Town is NJC's nightlife district, sitting where the Red Line metro crosses the Iceland-bound railway. Liveliest part of the capital after dark.",
+      jump:"nightlife" },
+    { k:["santorini","kandy","second capital"],
+      a:"Santorini is USSF's second capital, modeled after Kandy — reachable from NJC by direct long-distance train or highway." ,
+      jump:"cities"},
+    { k:["iceland","arctic","north"],
+      a:"Iceland is USSF's northern territory, linked to NJC by highway and by long-distance rail via Slut Town station.",
+      jump:"cities" },
+    { k:["highway","road","route"],
+      a:"The main highway runs Airport → NJC → Slut Town → Golden Jade Veilend Bridge, then splits toward Iceland and Santorini.",
+      jump:"highways" },
+    { k:["port","jenny","port de jenny"],
+      a:"Port de Jenny is NJC's coastal gateway, named after one of the city's two founders — also baked into the capital's own name (Nithil + Jenny = NJC)." },
+    { k:["apartment","downtown","hotel","shangri","skyscraper"],
+      a:"Downtown NJC has 10+ apartment towers and two skyscrapers — one a Shangri-La-style luxury hotel overlooking the skyline.",
+      jump:"about" },
+    { k:["mall","shop","metro mall","mcdonald","ikea","bank","boc"],
+      a:"NJC's Metro Mall has Perera & Sons Bakers, BOC Bank, Keells, Nolimit, Dinemore, and McDonald's — all directly connected to the metro. There's also a separate IKEA and hospital downtown.",
+      jump:"about" },
+    { k:["clock tower","church","market","medieval","middle njc"],
+      a:"Middle NJC keeps the old town's face — a working clock tower, a stone trade marketplace, and a church, all standing in the shadow of the Colosseum.",
+      jump:"about" },
+    { k:["who built","founder","nithil","jenny who","creator"],
+      a:"USSF and NJC were built by Nithil and Jenny — their initials literally make up 'NJC'." },
+    { k:["hello","hi","hey","yo"],
+      a:"Hey! Welcome to USSF. Ask me about the capital, the metro, the bridge, or any landmark — or tap one of the quick questions below." }
+  ];
+
+  var FALLBACK = "Hmm, I don't have an answer for that one yet. Try asking about NJC, the metro lines, the bridge, the Colosseum, or Slut Town!";
+  var QUICK = ["What is NJC?","Tell me about the metro","What's Slut Town?","Golden Jade Veilend Bridge"];
+
+  var launcher = document.getElementById('njc-bot-launcher');
+  var win = document.getElementById('njc-bot-window');
+  var closeBtn = document.getElementById('njc-bot-close');
+  var messages = document.getElementById('njc-bot-messages');
+  var quickrow = document.getElementById('njc-bot-quickrow');
+  var form = document.getElementById('njc-bot-form');
+  var input = document.getElementById('njc-bot-input');
+  var opened = false;
+
+  function addMsg(text, sender){
+    var div = document.createElement('div');
+    div.className = 'njc-msg ' + sender;
+    div.innerHTML = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    if(sender === 'bot'){
+      var jumpLinks = div.querySelectorAll('a.njc-jump');
+      jumpLinks.forEach(function(l){
+        l.addEventListener('click', function(e){
+          e.preventDefault();
+          var id = l.getAttribute('data-id');
+          var el = document.getElementById(id);
+          if(el){ el.scrollIntoView({behavior:'smooth'}); }
+        });
+      });
+    }
+  }
+
+  function findAnswer(q){
+    var lower = q.toLowerCase();
+    for(var i=0;i<KB.length;i++){
+      for(var j=0;j<KB[i].k.length;j++){
+        if(lower.indexOf(KB[i].k[j]) !== -1){
+          var ans = KB[i].a;
+          if(KB[i].jump){
+            ans += ' <a class="njc-jump" data-id="'+KB[i].jump+'">Jump to section →</a>';
+          }
+          return ans;
+        }
+      }
+    }
+    return FALLBACK;
+  }
+
+  function renderQuick(){
+    quickrow.innerHTML = '';
+    QUICK.forEach(function(q){
+      var b = document.createElement('button');
+      b.className = 'njc-quick';
+      b.type = 'button';
+      b.textContent = q;
+      b.addEventListener('click', function(){
+        handleUserMessage(q);
+      });
+      quickrow.appendChild(b);
+    });
+  }
+
+  function handleUserMessage(text){
+    addMsg(text, 'user');
+    setTimeout(function(){
+      addMsg(findAnswer(text), 'bot');
+    }, 280);
+  }
+
+  launcher.addEventListener('click', function(){
+    win.classList.add('open');
+    launcher.classList.add('hide');
+    if(!opened){
+      opened = true;
+      addMsg("Welcome to Neoveil Jade City! I'm the city assistant — ask me anything about USSF, or tap a question below.", 'bot');
+      renderQuick();
+    }
+    input.focus();
+  });
+
+  closeBtn.addEventListener('click', function(){
+    win.classList.remove('open');
+    launcher.classList.remove('hide');
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var val = input.value.trim();
+    if(!val) return;
+    handleUserMessage(val);
+    input.value = '';
+  });
+})();
+</script>
+
 </body>
 </html>
